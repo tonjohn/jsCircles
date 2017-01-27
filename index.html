@@ -12,7 +12,8 @@
 	<script>
 	function Circle(cx, cy, html_id)
 	{
-		var html_id = html_id;
+		// var html_id = html_id;
+		var elSvg = document.getElementById('svg');
 		this.info = { cx: cx,  cy: cy };
 		
 		//private function that generates a random number
@@ -41,13 +42,16 @@
 
 		this.update = function(time){
 			var el = document.getElementById(html_id);
+			
+
+			bjLog(this, 3);
 
 			//see if the circle is going outside the browser. if it is, reverse the velocity
-			if( this.info.cx > document.body.clientWidth || this.info.cx < 0)
+			if( this.info.cx+10 > elSvg.clientWidth || this.info.cx < 10)
 			{
 				this.info.velocity.x = this.info.velocity.x * -1;
 			}
-			if( this.info.cy > document.body.clientHeight || this.info.cy < 0)
+			if( this.info.cy+10 > elSvg.clientHeight || this.info.cy < 10)
 			{
 				this.info.velocity.y = this.info.velocity.y * -1;
 			}
