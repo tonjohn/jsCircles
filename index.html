@@ -7,14 +7,25 @@
 </head>
 <body>
 
+	<div id="menu">
+		<progress id="r_max" value="22" max="100"></progress><!--<span id="pct">0</span>% -->
+	</div>
 	<svg id="svg" xmlns="http://www.w3.org/2000/svg"></svg>
 
 	<script>
-	function Circle(cx, cy, html_id)
+	g_SpewLvl = 2;
+	var time_pressed = 0;
+	var elMax = document.getElementById('r_max');
+	var r_max;
+
+	setRMax();
+
+	console.log( g_SpewLvl, time_pressed, elMax, r_max );
+	function Circle(cx, cy, html_id, r = 10)
 	{
 		// var html_id = html_id;
 		var elSvg = document.getElementById('svg');
-		this.info = { cx: cx,  cy: cy };
+		this.info = { cx: cx,  cy: cy, r: r };
 		
 		//private function that generates a random number
 		var randomNumberBetween = function(min, max){
@@ -28,11 +39,29 @@
 				y: randomNumberBetween(-3,3)
 			}
 
+			if ( this.info.cx+this.info.r >= elSvg.clientWidth )
+			{
+				this.info.cx = elSvg.clientWidth - this.info.r;
+			}
+			else if ( this.info.cx-this.info.r <= 0 )
+			{
+				this.info.cx = 0 + this.info.r;
+			}
+
+			if ( this.info.cy+this.info.r >= elSvg.clientHeight )
+			{
+				this.info.cy = elSvg.clientHeight - this.info.r;
+			}
+			else if ( this.info.cy-this.info.r <= 0 )
+			{
+				this.info.cy = 0 + this.info.r;
+			}
+
 			//create a circle 
 			var circle = makeSVG('circle', 
 				{ 	cx: this.info.cx,
 				  	cy: this.info.cy,
-				  	r:  10,
+				  	r:  this.info.r,
 				  	id: html_id,
 				  	style: "fill: black"
 				});
@@ -44,14 +73,14 @@
 			var el = document.getElementById(html_id);
 			
 
-			bjLog(this, 3);
+			bjLog(this, 4);
 
 			//see if the circle is going outside the browser. if it is, reverse the velocity
-			if( this.info.cx+10 > elSvg.clientWidth || this.info.cx < 10)
+			if( this.info.cx+this.info.r > elSvg.clientWidth || this.info.cx < this.info.r)
 			{
 				this.info.velocity.x = this.info.velocity.x * -1;
 			}
-			if( this.info.cy+10 > elSvg.clientHeight || this.info.cy < 10)
+			if( this.info.cy+this.info.r > elSvg.clientHeight || this.info.cy < this.info.r)
 			{
 				this.info.velocity.y = this.info.velocity.y * -1;
 			}
@@ -89,8 +118,8 @@
 			}
 		}
 
-		this.createNewCircle = function(x,y){
-			var new_circle = new Circle(x,y,counter++);
+		this.createNewCircle = function(x,y,r=10){
+			var new_circle = new Circle(x,y,counter++, r);
 			circles.push(new_circle);
 			// bjLog('created a new circle!', new_circle); TO DO: fix bjLog to take multiple parameters
 		}
@@ -99,12 +128,90 @@
 		this.createNewCircle(document.body.clientWidth/2, document.body.clientHeight/2);
 	}
 
-	var playground = new PlayGround();
-	setInterval(playground.loop, 15);
+	
 
-	document.onclick = function(e) {
-		playground.createNewCircle(e.x,e.y);
+	
+	var playground = new PlayGround();
+	
+	
+
+
+
+	
+
+	function setRMax()
+	{
+		bjLog( "setRMax()", 2);
+		r_max = document.body.clientHeight;
+		if ( document.body.clientWidth  < r_max )
+		{
+			r_max = document.body.clientWidth;
+		}
+
+		r_max = (r_max / 2) - 10; // give some space between the largest circle and its container
+		elMax.setAttribute( "max", r_max );
+		elMax.setAttribute( "value", 0 );
+		bjLog( "r_max: " + r_max );
+
 	}
+
+	function getTime(){
+		var date = new Date();
+		return date.getTime();
+	}
+
+	function growcircle()
+	{
+		console.log( time_pressed, r_max );
+		if ( time_pressed < r_max )
+		{
+			time_pressed+=1;
+			elMax.setAttribute("value", time_pressed);
+
+			// update cursor UI
+		}
+		bjLog( "time_pressed: " + time_pressed, 2 );
+	}  
+
+	document.getElementById('svg').onmousedown = function(e){
+		// time_pressed = getTime();
+		intervalId = setInterval(growcircle, 10);
+
+		
+	}
+	document.onmouseup = function(e){
+		// time_pressed = getTime() - time_pressed;
+		//time_pressed /= 30; // slow down the growth of the ball so that the user has more control
+
+		// if ( time_pressed >= document.body.clientHeight )
+		// {
+		// 	time_pressed = document.body.clientHeight / 4;
+		// }
+		// else if ( time_pressed >= document.body.clientWidth )
+		// {
+		// 	time_pressed = document.body.clientWidth / 4;
+		// }
+		if( intervalId )
+		{
+			console.log(e.x, e.y);
+			clearInterval(intervalId);
+			playground.createNewCircle(e.x, e.y, time_pressed );
+			// reset values
+			time_pressed = 1;
+			elMax.setAttribute("value", 0);
+		}
+		//console.log('You held your mouse down for', time_pressed, 'miliseconds.');
+	}
+
+	document.onresize = function(e){
+
+		setRMax();
+	}
+
+	setInterval(playground.loop, 15);
+	// document.onclick = function(e) {
+	// 	playground.createNewCircle(e.x,e.y);
+	// }
 	
 	</script>
 
